@@ -6,3 +6,5 @@ load_dotenv(dotenv_path=path.join(BASE_DIR, ".env"))
 
 # Now we will load the constants
 DB_URI = getenv("DB_URI").strip()
+
+LOG_LEVEL = getenv("LOG_LEVEL").strip()
