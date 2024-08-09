@@ -5,10 +5,11 @@ from datetime import datetime
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from pymongo import MongoClient
+from pymongo.database import Database
 
 from constants import LOG_LEVEL
 from metadata import title, description, version, contact, tags_metadata
-from models import HealthItem
+from models import HealthItem, NameItem, CommentList, CommentResponse
 from utils import check_database_health, connect_to_mongodb
 
 # Configure Logging
@@ -47,3 +48,26 @@ def alive_check(database_health: bool = Depends(check_database_health)) -> Healt
     - HealthItem: Response indicating the health status of the API and the database
     """
     return HealthItem(alive=True, db_healthy=database_health, timestamp=time.time())
+
+
+@app.get("/getUserComments/{name}", tags=["comments"])
+async def get_all_comments_by_user(
+    name: str, db: Database = Depends(connect_to_mongodb)
+) -> CommentList:
+    """
+    Endpoint that returns all comments by a certain user
+
+    Args:
+    - name (String): The name of the user
+
+    Returns:
+    - commentList (CommentList): List of all comments left by the user
+    """
+    
+    query = {"name": name}
+
+    resultsList = list(db.comments.find(query))
+    commentsList = {
+        "comments": resultsList
+    }
+    return commentsList
