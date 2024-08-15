@@ -6,10 +6,11 @@ from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from pymongo import MongoClient
 from pymongo.database import Database
+from fastapi.responses import JSONResponse
 
 from constants import LOG_LEVEL
 from metadata import title, description, version, contact, tags_metadata
-from models import HealthItem, NameItem, CommentList, CommentResponse
+from models import HealthItem, NameItem, CommentList, CommentObject
 from utils import check_database_health, connect_to_mongodb
 
 # Configure Logging
@@ -63,11 +64,33 @@ async def get_all_comments_by_user(
     Returns:
     - commentList (CommentList): List of all comments left by the user
     """
-    
+
     query = {"name": name}
 
     resultsList = list(db.comments.find(query))
-    commentsList = {
-        "comments": resultsList
-    }
+    commentsList = {"comments": resultsList}
     return commentsList
+
+
+@app.post("/addNewComment", tags=["comments"])
+async def add_new_comment(
+    new_comment: CommentObject, db: Database = Depends(connect_to_mongodb)
+):
+    """
+    Endpoint that adds a comment object
+
+    Args:
+    - new_comment (CommentObject): A comment left by the user
+
+    Returns:
+    - http Response
+    """
+    commentDoc = {
+        "name": new_comment.name,
+        "email": new_comment.email,
+        "text": new_comment.text,
+        "date": new_comment.date if new_comment.date else datetime.now(),
+    }
+
+    result = db.comments.insert_one(commentDoc)
+    return JSONResponse(status_code=201, content={"success": result.acknowledged})

@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field
-from typing import List
+from typing import List, Optional
 from datetime import datetime
-from bson import objectid
+
 
 class HealthItem(BaseModel):
     """
@@ -21,22 +21,20 @@ class NameItem(BaseModel):
     name: str = Field(required=True)
 
 
-class CommentResponse(BaseModel):
+class CommentObject(BaseModel):
     """
     A single comment
     """
 
-    _id: objectid
     name: str
     email: str
-    movie_id: objectid
     text: str
-    date: datetime
+    date: Optional[datetime] = None
 
 
 class CommentList(BaseModel):
     """
-    List of Comments
+    List of Comment Objects
     """
     
-    comments: List[CommentResponse]
+    comments: List[CommentObject]
