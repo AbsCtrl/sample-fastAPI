@@ -94,3 +94,26 @@ async def add_new_comment(
 
     result = db.comments.insert_one(commentDoc)
     return JSONResponse(status_code=201, content={"success": result.acknowledged})
+
+
+@app.get("/commentsByYear/{year}", tags=["comments"])
+async def get_comments_by_year(year: int, db: Database = Depends(connect_to_mongodb)) -> CommentList:
+    """
+    Endpoint that gets comments sorted
+
+    Args:
+    - year (str):
+
+    Returns:
+    - CommentList
+    """
+
+    pipeline = [
+        {"$addFields": {"year": {"$year": "$date"}}},
+        {"$match": {"year": year}},
+        {"$project": {"_id": 0, "text": 1, "date": 1, "name": 1, "email": 1}},
+    ]
+
+    result = list(db.comments.aggregate(pipeline))
+    comment_list = CommentList(comments=result)
+    return comment_list

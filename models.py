@@ -26,8 +26,8 @@ class CommentObject(BaseModel):
     A single comment
     """
 
-    name: str
-    email: str
+    name: Optional[str] = None
+    email: Optional[str] = None
     text: str
     date: Optional[datetime] = None
 
